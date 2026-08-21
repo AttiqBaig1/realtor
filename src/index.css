@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+    --color-bg-primary: #0B0F19;
+    --color-bg-secondary: #141B2D;
+    --color-bg-card: #141B2D;
+    --color-accent-gold: #D4AF37;
+    --color-text-main: #F8FAFC;
+    --color-text-muted: #94A3B8;
+  }
+  
+  html {
+    background-color: #0B0F19;
+    color: #F8FAFC;
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0B0F19;
+    color: #F8FAFC;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1120;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Gold Gradient Utilities */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFF1CD 0%, #D4AF37 50%, #B38F24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #E5C358 0%, #D4AF37 50%, #B8860B 100%);
+}
+
+.dark-luxury-bg {
+  background: radial-gradient(circle at 50% 0%, #1E293B 0%, #0F172A 100%);
+}
+
+.dark-surface-card {
+  background-color: #141B2D;
+  border-color: #1E293B;
+}
+
+.gold-glow {
+  box-shadow: 0 0 35px -5px rgba(212, 175, 55, 0.22);
+}
+
+.gold-border-glow {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 20px -3px rgba(212, 175, 55, 0.15);
+}
+
+/* Print formatting for PDF Brochures */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .page-break {
+    page-break-after: always;
+  }
+}
