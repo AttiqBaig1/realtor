@@ -85,6 +85,10 @@ export function parseCleanLink(pathname: string, search = ''): CleanLinkData | n
   let tokens = slugify(seg).split('-').filter(Boolean);
   if (!tokens.length) return null;
 
+  // trailing phone number: /central-valley-prime-realty-fresno-5594382200
+  let pathPhone: string | undefined;
+  if (tokens.length > 1 && /^1?\d{10}$/.test(tokens[tokens.length - 1])) pathPhone = tokens.pop();
+
   // trailing state / province code
   let st: string | undefined;
   if (tokens.length > 1 && STATES.has(tokens[tokens.length - 1])) st = tokens.pop();
@@ -133,7 +137,7 @@ export function parseCleanLink(pathname: string, search = ''): CleanLinkData | n
   const get = (k: string) => (q.get(k) || '').trim() || undefined;
   if (get('n')) out.name = get('n');
   if (get('k')) out.keyword = get('k');
-  out.phone = get('p');
+  out.phone = get('p') || pathPhone;
   out.agentName = get('a');
   out.email = get('e');
   out.whatsapp = get('w');
@@ -197,7 +201,7 @@ export function cityFromText(city?: string, address?: string): { city: string; s
 }
 
 /** Builds the short path + query for a realtor. Keeps only what is needed. */
-export function buildCleanLink(inp: CleanLinkInput, origin = SITE_ORIGIN): string {
+export function buildCleanLink(inp: CleanLinkInput, origin = SITE_ORIGIN, phoneInPath = false): string {
   const { city, st } = cityFromText(inp.city, inp.address);
   const citySlug = slugify(city);
   const nameSlug = slugify(inp.name || '');
@@ -218,7 +222,11 @@ export function buildCleanLink(inp: CleanLinkInput, origin = SITE_ORIGIN): strin
     const loose = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (loose(parsed.name || '') !== loose(inp.name)) q.set('n', inp.name.trim());
   }
-  if (inp.phone) { const d = inp.phone.replace(/\D/g, ''); q.set('p', d.length === 11 && d[0] === '1' ? d.slice(1) : d); }
+  if (inp.phone) {
+    const d0 = inp.phone.replace(/\D/g, '');
+    const d = d0.length === 11 && d0[0] === '1' ? d0.slice(1) : d0;
+    if (phoneInPath && d.length === 10) slug += `-${d}`; else q.set('p', d);
+  }
   if (inp.keyword && !/^top-rated 5-star professional realtor$/i.test(inp.keyword.trim())) q.set('k', inp.keyword.trim());
   if (inp.agentName && inp.agentName.trim() !== (inp.name || '').trim()) q.set('a', inp.agentName.trim());
   if (inp.email) q.set('e', inp.email.trim());

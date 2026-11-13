@@ -464,7 +464,7 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       name: target.name, city: target.city, address: target.address, phone: target.phone,
       keyword: target.primaryKeyword, agentName: target.agentName,
       whatsapp: target.whatsapp,
-    }, linkOrigin());
+    }, linkOrigin(), true);
   };
 
   // AI Chat message sender

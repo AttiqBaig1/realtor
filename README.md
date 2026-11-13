@@ -48,7 +48,8 @@ No publishing needed. Every link builds the site on the fly:
 |---|---|
 | `realtordemos.online/realtor-fresno` | Generic demo for Fresno, CA |
 | `realtordemos.online/luxury-realtor-houston` | H1 "Luxury Realtor in Houston, TX" |
-| `realtordemos.online/central-valley-prime-realty-fresno?p=5594382200` | Named realtor, with their phone |
+| `realtordemos.online/central-valley-prime-realty-fresno` | Named realtor |
+| `realtordemos.online/central-valley-prime-realty-fresno-5594382200` | Named realtor with their phone (optional) |
 
 Optional query keys: `p` phone, `a` agent, `e` email, `k` keyword, `n` exact name, `s` sales, `x` experience, `w` WhatsApp.
 Add a state code at the end for small or ambiguous towns: `/realtor-springfield-il`.

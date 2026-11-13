@@ -35,6 +35,7 @@ interface Site {
   input: CleanLinkInput & { name: string };
   city: string;
   link: string;
+  dup?: boolean;
 }
 
 const pretty = (url: string) => url.replace(/^https?:\/\//, '');
@@ -101,7 +102,8 @@ const Dashboard: React.FC = () => {
     const base = quickLink(qText, origin);
     if (!base) return '';
     const d = qPhone.replace(/\D/g, '');
-    return d ? `${base}?p=${d.length === 11 && d[0] === '1' ? d.slice(1) : d}` : base;
+    const ten = d.length === 11 && d[0] === '1' ? d.slice(1) : d;
+    return ten.length === 10 ? `${base}-${ten}` : base;
   }, [qText, qPhone, origin]);
   const qParsed = useMemo(() => {
     if (!qLink) return null;
@@ -116,7 +118,7 @@ const Dashboard: React.FC = () => {
   const [csvErr, setCsvErr] = useState('');
   const [over, setOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [withPhone, setWithPhone] = useState(true);
+  const [withPhone, setWithPhone] = useState(false);
   const [withExtras, setWithExtras] = useState(false);
 
   const setCount = (n: number) => {
@@ -152,18 +154,38 @@ const Dashboard: React.FC = () => {
 
   // ---------------------------------------------------------------- generate
   const [sites, setSites] = useState<Site[]>([]);
-  const [genMsg, setGenMsg] = useState('');
+  const [genMsg, setGenMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const generate = () => {
-    const out = toBuild.map((input, i) => {
-      let inp: CleanLinkInput = withPhone ? input : { ...input, phone: undefined, whatsapp: undefined };
+    const make = (input: CleanLinkInput & { name: string }, phone: boolean) => {
+      let inp: CleanLinkInput = phone ? input : { ...input, phone: undefined, whatsapp: undefined };
       if (!withExtras) inp = { name: inp.name, city: inp.city, address: inp.address, phone: inp.phone };
-      const link = buildCleanLink(inp, origin);
+      return buildCleanLink(inp, origin, true);
+    };
+    let links = toBuild.map(input => make(input, withPhone));
+    // same name + city twice in one list -> add each one's phone so the links differ
+    const count = (ls: string[]) => ls.reduce((m, l) => m.set(l, (m.get(l) || 0) + 1), new Map<string, number>());
+    let seen = count(links);
+    let fixed = 0;
+    links = links.map((l, i) => {
+      if ((seen.get(l) || 0) < 2 || withPhone || !toBuild[i].phone) return l;
+      fixed++;
+      return make(toBuild[i], true);
+    });
+    seen = count(links);
+    const dupes = toBuild.filter((_, i) => (seen.get(links[i]) || 0) > 1).map(x => x.name);
+
+    const out = toBuild.map((input, i) => {
       const c = cityFromText(input.city, input.address);
-      return { key: `${Date.now()}-${i}`, input, city: c.st ? `${c.city}, ${c.st}` : c.city, link };
+      return { key: `${Date.now()}-${i}`, input, city: c.st ? `${c.city}, ${c.st}` : c.city, link: links[i], dup: (seen.get(links[i]) || 0) > 1 };
     });
     setSites(out);
-    setGenMsg(`${out.length} clean link${out.length === 1 ? '' : 's'} ban gaye. Koi publish nahi — link kholte hi site us realtor ke hisaab se ban jati hai.`);
+    setGenMsg({
+      ok: dupes.length === 0,
+      text: `${out.length} clean link${out.length === 1 ? '' : 's'} ban gaye.`
+        + (fixed ? ` ${fixed} realtors ka naam aur city ek jaisa tha, unke link mein phone laga diya taake alag rahein.` : '')
+        + (dupes.length ? ` ⚠️ In ka link ab bhi ek jaisa hai (phone nahi diya): ${[...new Set(dupes)].join(', ')}. Phone ya agent ka naam daal ke dobara generate karein.` : ''),
+    });
     setTimeout(() => document.getElementById('rd-links')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
@@ -301,12 +323,12 @@ const Dashboard: React.FC = () => {
           )}
 
           <div style={{ display: 'grid', gap: 14, paddingTop: 6, borderTop: '1px solid var(--line)' }}>
-            <label className="toggle" htmlFor="rd-wp"><input id="rd-wp" type="checkbox" checked={withPhone} onChange={e => setWithPhone(e.target.checked)} /> Realtor ka phone link mein shamil karein <span style={{ color: 'var(--muted)' }}>(link ke aakhir mein <code>?p=…</code>)</span></label>
+            <label className="toggle" htmlFor="rd-wp"><input id="rd-wp" type="checkbox" checked={withPhone} onChange={e => setWithPhone(e.target.checked)} /> Realtor ka phone bhi link mein daalein <span style={{ color: 'var(--muted)' }}>(link ke aakhir mein number lagega: <code>…-fresno-5594382200</code>)</span></label>
             <label className="toggle" htmlFor="rd-wx"><input id="rd-wx" type="checkbox" checked={withExtras} onChange={e => setWithExtras(e.target.checked)} /> Agent, email, keyword, sales bhi link mein daalein <span style={{ color: 'var(--muted)' }}>(link lamba ho jayega)</span></label>
             <button className="btn primary big" type="button" disabled={toBuild.length === 0} onClick={generate}>
               🔗 Generate clean links{toBuild.length > 1 ? ` (${toBuild.length})` : ''}
             </button>
-            {genMsg && <div className="alert ok">{genMsg}</div>}
+            {genMsg && <div className={`alert ${genMsg.ok ? 'ok' : 'bad'}`}>{genMsg.text}</div>}
           </div>
         </section>
 
@@ -328,7 +350,7 @@ const Dashboard: React.FC = () => {
                   <tr key={s.key}>
                     <td><strong>{s.input.name}</strong>{s.input.phone ? <><br /><span className="mono" style={{ color: 'var(--muted)' }}>{s.input.phone}</span></> : null}</td>
                     <td><span className="chip">{s.city}</span></td>
-                    <td style={{ maxWidth: 360, wordBreak: 'break-all' }}><a href={s.link} target="_blank" rel="noopener noreferrer">{pretty(s.link)}</a></td>
+                    <td style={{ maxWidth: 360, wordBreak: 'break-all' }}><a href={s.link} target="_blank" rel="noopener noreferrer">{pretty(s.link)}</a>{s.dup && <><br /><span className="st r">⚠️ Duplicate link</span></>}</td>
                     <td><button className="btn sm" type="button" onClick={() => copy(s.link, s.key)}>{copiedKey === s.key ? '✓' : 'Copy'}</button></td>
                   </tr>
                 ))}</tbody>
