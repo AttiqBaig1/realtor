@@ -4,6 +4,12 @@ Live: **https://attiqbaig1.github.io/realtor/**
 
 A luxury real estate website that personalises itself from the link, plus agency tools for generating and publishing realtor pages.
 
+## Realtor Engine dashboard (password protected)
+
+**https://attiqbaig1.github.io/realtor/?dashboard**
+
+Same layout as the Landing Page Engine: 0 WordPress connection → 1 Generate Pages (manual entry or CSV, optional one-click publish) → 2 Preview & Download → 3 Publish ALL / per page → Live URLs. Each realtor also gets a personalised demo-site link (and a short link when available). Results export to CSV.
+
 ## Agency tools (password protected)
 
 Open `https://attiqbaig1.github.io/realtor/?agency=true` → **SEO Generator & Bulk CSV** → enter the admin password.

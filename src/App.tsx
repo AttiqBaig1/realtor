@@ -32,6 +32,10 @@ import { CompareView } from './components/views/CompareView';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { SeoEngineGenerator } from './components/admin/SeoEngineGenerator';
+import { RealtorDashboard } from './components/dashboard/RealtorDashboard';
+
+// ?dashboard on the site URL opens the Realtor Engine dashboard (password protected).
+const IS_DASHBOARD = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dashboard');
 
 const MainContent: React.FC = () => {
   const { currentPage, isAdminLoggedIn, theme } = useRealEstate();
@@ -49,6 +53,15 @@ const MainContent: React.FC = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
+
+  if (IS_DASHBOARD) {
+    return (
+      <>
+        <RealtorDashboard />
+        <ToastContainer />
+      </>
+    );
+  }
 
   // Check if current view is admin
   const isAdminView = currentPage === 'admin' || currentPage === 'admin-dashboard' || currentPage === 'admin-login';

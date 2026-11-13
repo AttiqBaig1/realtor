@@ -331,6 +331,10 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
           </div>
         </div>
 
+        <a href={`${window.location.pathname}?dashboard`} className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20">
+          <Zap className="w-4 h-4" />Open Realtor Engine dashboard (Generate &amp; Publish)
+        </a>
+
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2 overflow-x-auto">
           {[
