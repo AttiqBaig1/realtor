@@ -91,7 +91,8 @@ const MainContent: React.FC = () => {
         return <CompareView />;
 
       case 'seo-engine':
-        return <SeoEngineGenerator />;
+        // Agency tools (demo generator, bulk CSV, WordPress publishing) need the admin password.
+        return isAdminLoggedIn ? <SeoEngineGenerator /> : <AdminLogin purpose="agency" />;
 
       case 'admin':
       case 'admin-login':

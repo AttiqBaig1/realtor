@@ -1,37 +1,25 @@
 import React, { useState } from 'react';
 import { useRealEstate } from '../../context/RealEstateContext';
-import { ShieldCheck, Lock, Mail, ArrowRight, KeyRound, Sparkles } from 'lucide-react';
+import { Lock, ArrowRight, KeyRound, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export const AdminLogin: React.FC = () => {
+export const AdminLogin: React.FC<{ purpose?: 'admin' | 'agency' }> = ({ purpose = 'admin' }) => {
   const { loginAdmin, setCurrentPage, realtorProfile } = useRealEstate();
-  const [email, setEmail] = useState('admin@auraestates.com');
-  const [password, setPassword] = useState('luxury2026');
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    setTimeout(() => {
-      const success = loginAdmin(email, password);
-      setLoading(false);
-      if (!success) {
-        setError('Invalid sovereign credentials. Please verify your email and passkey.');
-      }
-    }, 400);
-  };
-
-  const handleQuickDemoLogin = () => {
-    setEmail('admin@auraestates.com');
-    setPassword('luxury2026');
-    setLoading(true);
-    setTimeout(() => {
-      loginAdmin('admin@auraestates.com', 'luxury2026');
-      setLoading(false);
-    }, 300);
+    const success = await loginAdmin(password, purpose === 'agency');
+    setLoading(false);
+    if (!success) {
+      setError('Incorrect password. Please try again.');
+      setPassword('');
+    }
   };
 
   return (
@@ -54,10 +42,12 @@ export const AdminLogin: React.FC = () => {
             <span>Management Portal</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            {realtorProfile.name} Console
+            {purpose === 'agency' ? 'Agency Tools' : `${realtorProfile.name} Console`}
           </h2>
           <p className="text-xs text-slate-400">
-            Authorized administrative access for managing listings, leads, and client dossiers.
+            {purpose === 'agency'
+              ? 'Enter the admin password to use the demo generator, bulk CSV and WordPress publishing.'
+              : 'Authorized administrative access for managing listings, leads, and client dossiers.'}
           </p>
         </div>
 
@@ -70,50 +60,22 @@ export const AdminLogin: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs text-slate-400 font-medium block mb-1.5">
-              Authorized Email
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-slate-400 font-medium block mb-1.5">
-              Cryptographic Passkey
+              Password
             </label>
             <div className="relative">
               <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               <input
-                type="password"
+                type={show ? 'text' : 'password'}
                 required
+                autoFocus
+                autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-500"
+                className="w-full pl-10 pr-16 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500"
               />
-            </div>
-          </div>
-
-          {/* Demo Credentials hint with 1-click quick login */}
-          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-amber-500/30 text-xs text-slate-300 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-amber-400">Demo Credentials:</span>
-              <button
-                type="button"
-                onClick={handleQuickDemoLogin}
-                className="text-[11px] font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 px-2.5 py-1 rounded transition-colors"
-              >
-                1-Click Instant Login
+              <button type="button" onClick={() => setShow(v => !v)} className="absolute right-3 top-2.5 text-[11px] font-semibold text-slate-400 hover:text-amber-300 px-2 py-1">
+                {show ? 'Hide' : 'Show'}
               </button>
-            </div>
-            <div className="text-[11px] text-slate-400">
-              Email: <code className="text-amber-200">admin@auraestates.com</code> | Pass: <code className="text-amber-200">luxury2026</code>
             </div>
           </div>
 
@@ -123,10 +85,10 @@ export const AdminLogin: React.FC = () => {
             className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
           >
             {loading ? (
-              <span>Authenticating...</span>
+              <span>Checking...</span>
             ) : (
               <>
-                <span>Access Management Console</span>
+                <span>{purpose === 'agency' ? 'Open Agency Tools' : 'Access Management Console'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

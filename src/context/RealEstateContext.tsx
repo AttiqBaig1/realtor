@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { INITIAL_PROPERTIES } from '../data/initialProperties';
 import { INITIAL_TESTIMONIALS, INITIAL_LEADS, INITIAL_SETTINGS } from '../data/initialData';
+import { verifyAdminPassword } from '../config/security';
 import { DEFAULT_REALTOR_PROFILE, REALTOR_PRESETS } from '../data/realtorPresets';
 import confetti from 'canvas-confetti';
 
@@ -110,6 +111,7 @@ interface RealEstateContextType {
   // Wishlist & Compare
   wishlist: string[];
   toggleWishlist: (id: string) => void;
+  clearWishlist: () => void;
   isWishlisted: (id: string) => boolean;
   compareList: string[];
   toggleCompare: (id: string) => void;
@@ -127,8 +129,7 @@ interface RealEstateContextType {
   // Admin Auth
   adminUser: AdminUser | null;
   isAdminLoggedIn: boolean;
-  loginAdmin: (email?: string, pass?: string) => boolean;
-  loginAsDemoClient: () => void;
+  loginAdmin: (pass: string, stayOnPage?: boolean) => Promise<boolean>;
   logoutAdmin: () => void;
   
   // Modals
@@ -757,6 +758,11 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Wishlist & Compare
+  const clearWishlist = () => {
+    setWishlist([]);
+    showToast('Wishlist cleared.');
+  };
+
   const toggleWishlist = (id: string) => {
     setWishlist(prev => {
       const exists = prev.includes(id);
@@ -817,57 +823,21 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Admin Auth Methods
-  const loginAdmin = (email: string = 'admin@auraestates.com', pass: string = 'luxury2026') => {
-    const cleanEmail = email.toLowerCase().trim();
-    // Allow either the master demo credentials OR client test login
-    if (cleanEmail === 'admin@auraestates.com' && pass === 'luxury2026') {
-      const user: AdminUser = {
-        id: 'usr-1',
-        name: realtorProfile.agentName || 'Alexander Sterling',
-        email: cleanEmail,
-        role: 'Super Admin',
-        avatar: realtorProfile.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
-        token: 'jwt_aura_session_' + Date.now()
-      };
-      setAdminUser(user);
-      localStorage.setItem('aura_admin_token', JSON.stringify(user));
-      showToast(`Welcome back, ${user.name}. Admin session verified.`);
-      setCurrentPage('admin-dashboard');
-      return true;
-    } else if (cleanEmail && pass) {
-      // Allow flexible test credentials for client preview
-      const user: AdminUser = {
-        id: 'usr-client',
-        name: realtorProfile.agentName || 'Realtor Client',
-        email: cleanEmail,
-        role: 'Senior Partner',
-        avatar: realtorProfile.avatar || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80',
-        token: 'jwt_client_session_' + Date.now()
-      };
-      setAdminUser(user);
-      localStorage.setItem('aura_admin_token', JSON.stringify(user));
-      showToast(`Welcome, ${user.name}! Client Management Portal activated.`);
-      setCurrentPage('admin-dashboard');
-      return true;
-    }
-    showToast('Invalid credentials. Use demo credentials or click 1-Click Demo Login.', 'error');
-    return false;
-  };
-
-  // 1-Click instant login for prospective clients testing the demo
-  const loginAsDemoClient = () => {
+  const loginAdmin = async (pass: string, stayOnPage: boolean = false): Promise<boolean> => {
+    if (!(await verifyAdminPassword(pass))) return false;
     const user: AdminUser = {
-      id: 'usr-demo-client',
-      name: realtorProfile.agentName,
-      email: realtorProfile.email,
+      id: 'usr-1',
+      name: realtorProfile.agentName || 'Administrator',
+      email: realtorProfile.email || '',
       role: 'Super Admin',
-      avatar: realtorProfile.avatar,
-      token: 'jwt_demo_client_' + Date.now()
+      avatar: realtorProfile.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+      token: 'session_' + Date.now()
     };
     setAdminUser(user);
     localStorage.setItem('aura_admin_token', JSON.stringify(user));
-    showToast(`Client Portal opened for ${realtorProfile.name}!`);
-    setCurrentPage('admin-dashboard');
+    showToast(`Welcome back, ${user.name}.`);
+    if (!stayOnPage) setCurrentPage('admin-dashboard');
+    return true;
   };
 
   const logoutAdmin = () => {
@@ -938,6 +908,7 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isAiChatOpen,
         setIsAiChatOpen,
         wishlist,
+        clearWishlist,
         toggleWishlist,
         isWishlisted,
         compareList,
@@ -953,7 +924,6 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         adminUser,
         isAdminLoggedIn,
         loginAdmin,
-        loginAsDemoClient,
         logoutAdmin,
         bookingModalOpen,
         setBookingModalOpen,

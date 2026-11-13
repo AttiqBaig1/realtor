@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRealEstate } from '../../context/RealEstateContext';
 import { RealtorProfile, BatchRealtorItem } from '../../types';
 import { REALTOR_PRESETS } from '../../data/realtorPresets';
-import { shortenWithTinyUrl, batchShortenUrls } from '../../utils/urlShortener';
+import { shortenWithTinyUrl, batchShortenUrls, isShortened } from '../../utils/urlShortener';
 import { parseRealtorCsv, exportBatchRealtorsToCsv, downloadSampleCsvTemplate } from '../../utils/csvHelper';
 import { 
   Wand2, 
@@ -33,6 +33,7 @@ import {
   Scissors
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { WordPressPublisher } from './WordPressPublisher';
 
 export const SeoEngineGenerator: React.FC = () => {
   const { 
@@ -55,7 +56,7 @@ export const SeoEngineGenerator: React.FC = () => {
   }, []);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'single' | 'bulk' | 'presets' | 'seo-preview'>('bulk');
+  const [activeTab, setActiveTab] = useState<'single' | 'bulk' | 'presets' | 'seo-preview' | 'wordpress'>('bulk');
 
   // Form State for Single Client Demo Generator
   const [formData, setFormData] = useState<Partial<RealtorProfile>>({
@@ -95,7 +96,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate initial TinyURL when single URL changes
+  // Generate initial Short Link when single URL changes
   const currentGeneratedUrl = generateDynamicUrl(formData);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
     }
   }, []);
 
-  // Trigger batch shortening with TinyURL
+  // Trigger batch shortening with Short Link
   const triggerBatchShortening = async (items: BatchRealtorItem[]) => {
     if (items.length === 0) return;
     setIsBatchShortening(true);
@@ -154,7 +155,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
         isShortening: false
       })));
 
-      showToast(`Generated TinyURLs for all ${items.length} realtors!`, 'success');
+      showToast(`Generated Short Links for all ${items.length} realtors!`, 'success');
     } catch (e) {
       console.error(e);
     } finally {
@@ -200,7 +201,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
     const urlToCopy = singleTinyUrl || currentGeneratedUrl;
     navigator.clipboard.writeText(urlToCopy);
     setCopiedSingleTiny(true);
-    showToast('Neat TinyURL copied to clipboard! Ready to send to client.');
+    showToast('Short link copied to clipboard! Ready to send to client.');
     setTimeout(() => setCopiedSingleTiny(false), 2500);
   };
 
@@ -220,7 +221,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
         setBulkInput(content);
         const parsed = parseRealtorCsv(content, generateDynamicUrl);
         setGeneratedBatch(parsed);
-        showToast(`Imported ${parsed.length} realtors from ${file.name}! Processing TinyURLs...`);
+        showToast(`Imported ${parsed.length} realtors from ${file.name}! Processing Short Links...`);
         triggerBatchShortening(parsed);
       }
     };
@@ -236,7 +237,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
         return;
       }
       setGeneratedBatch(parsed);
-      showToast(`Processed ${parsed.length} client demo URLs successfully! Generating TinyURLs...`);
+      showToast(`Processed ${parsed.length} client demo URLs successfully! Generating Short Links...`);
       triggerBatchShortening(parsed);
     } catch (e) {
       showToast('Error parsing CSV. Please check formatting or download template.', 'error');
@@ -250,10 +251,10 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
       return;
     }
     exportBatchRealtorsToCsv(generatedBatch, `Realtor_Demos_${new Date().toISOString().slice(0,10)}.csv`);
-    showToast('Downloaded processed CSV with Live Website URLs & TinyURLs!', 'success');
+    showToast('Downloaded processed CSV with Live Website URLs & Short Links!', 'success');
   };
 
-  // Copy all TinyURLs formatted list
+  // Copy all Short Links formatted list
   const handleCopyAllTinyUrls = () => {
     if (generatedBatch.length === 0) return;
     const textList = generatedBatch.map(item => 
@@ -261,7 +262,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
     ).join('\n');
 
     navigator.clipboard.writeText(textList);
-    showToast(`Copied ${generatedBatch.length} TinyURLs to clipboard!`);
+    showToast(`Copied ${generatedBatch.length} Short Links to clipboard!`);
   };
 
   const handleLaunchBatchItem = (item: BatchRealtorItem) => {
@@ -296,13 +297,13 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                 <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-slate-950 uppercase tracking-wider">
                   Agency Master Suite
                 </span>
-                <span className="text-xs text-amber-400 font-medium hidden sm:inline">Bulk CSV & TinyURL Generator</span>
+                <span className="text-xs text-amber-400 font-medium hidden sm:inline">Bulk CSV & Short Link Generator</span>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
-                Realtor Bulk CSV & TinyURL Demo Generator
+                Realtor Bulk CSV & Short Link Demo Generator
               </h1>
               <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                Upload your realtor dataset (Name, Address, Phone, City) in bulk CSV. The engine creates tailored Local SEO H1 headlines, NAP citations, and returns a downloadable CSV with live links & clean <strong>TinyURLs</strong>.
+                Upload your realtor dataset (Name, Address, Phone, City) in bulk CSV. The engine creates tailored Local SEO H1 headlines, NAP citations, and returns a downloadable CSV with live links & clean <strong>Short Links</strong>.
               </p>
             </div>
           </div>
@@ -333,7 +334,8 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2 overflow-x-auto">
           {[
-            { id: 'bulk', label: 'Bulk CSV Upload & Export (with TinyURLs)', icon: FileSpreadsheet },
+            { id: 'wordpress', label: 'Publish to WordPress', icon: Globe },
+            { id: 'bulk', label: 'Bulk CSV Upload & Export (with Short Links)', icon: FileSpreadsheet },
             { id: 'single', label: '1-Click Single Demo Generator', icon: Sliders },
             { id: 'presets', label: 'Requested City Presets (Paso Robles, Fresno, Santa Barbara, etc.)', icon: MapPin },
             { id: 'seo-preview', label: 'Local SEO H1 & Meta Audit', icon: Globe }
@@ -360,6 +362,10 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto">
+
+        {activeTab === 'wordpress' && (
+          <WordPressPublisher single={formData} batch={generatedBatch} goToBulk={() => setActiveTab('bulk')} />
+        )}
 
         {/* ========================================================================= */}
         {/* TAB 1: BULK CSV PROCESSOR & TINYURL GENERATOR */}
@@ -436,7 +442,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                     className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
                   >
                     <Wand2 className="w-4 h-4" />
-                    <span>{isBatchShortening ? 'Processing...' : 'Process CSV & Generate TinyURLs'}</span>
+                    <span>{isBatchShortening ? 'Processing...' : 'Process CSV & Generate Short Links'}</span>
                   </button>
 
                   <button
@@ -465,7 +471,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                         <span>Processed Realtors ({generatedBatch.length})</span>
                       </h2>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Each realtor receives their custom Local SEO H1, NAP citation, full URL, and neat TinyURL link.
+                        Each realtor receives their custom Local SEO H1, NAP citation, full URL, and neat Short Link link.
                       </p>
                     </div>
 
@@ -487,7 +493,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                       <div className="flex items-center justify-between font-semibold text-amber-300 mb-1.5">
                         <span className="flex items-center gap-1.5">
                           <Scissors className="w-3.5 h-3.5 animate-spin" />
-                          Shortening links with TinyURL...
+                          Shortening links with Short Link...
                         </span>
                         <span>{shorteningProgress.current} / {shorteningProgress.total}</span>
                       </div>
@@ -507,14 +513,14 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                       <span className="text-lg font-bold text-white">{generatedBatch.length}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                      <span className="text-[10px] text-slate-400 uppercase block font-semibold">TinyURLs Ready</span>
+                      <span className="text-[10px] text-slate-400 uppercase block font-semibold">Short Links Ready</span>
                       <span className="text-lg font-bold text-amber-400">
-                        {generatedBatch.filter(b => b.tinyUrl && b.tinyUrl.includes('http')).length}
+                        {generatedBatch.filter(b => isShortened(b.tinyUrl, b.generatedUrl)).length}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
                       <span className="text-[10px] text-slate-400 uppercase block font-semibold">Format</span>
-                      <span className="text-xs font-bold text-emerald-400">Clean TinyURL</span>
+                      <span className="text-xs font-bold text-emerald-400">Clean Short Link</span>
                     </div>
                   </div>
 
@@ -526,7 +532,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                       className="text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold"
                     >
                       <Copy className="w-3 h-3" />
-                      <span>Copy All TinyURLs</span>
+                      <span>Copy All Short Links</span>
                     </button>
                   </div>
                 </div>
@@ -567,7 +573,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                               onClick={() => {
                                 navigator.clipboard.writeText(cleanTiny);
                                 setCopiedBatchId(item.id);
-                                showToast(`Copied TinyURL for ${item.name}!`);
+                                showToast(`Copied Short Link for ${item.name}!`);
                                 setTimeout(() => setCopiedBatchId(null), 2000);
                               }}
                               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
@@ -575,15 +581,15 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                                   ? 'bg-emerald-500 text-slate-950' 
                                   : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700'
                               }`}
-                              title="Copy Clean TinyURL"
+                              title="Copy Clean Short Link"
                             >
                               {isCopied ? <Check className="w-3 h-3 text-slate-950" /> : <Scissors className="w-3 h-3" />}
-                              <span>{isCopied ? 'Copied' : 'Copy TinyURL'}</span>
+                              <span>{isCopied ? 'Copied' : 'Copy Short Link'}</span>
                             </button>
                           </div>
                         </div>
 
-                        {/* TinyURL display box */}
+                        {/* Short Link display box */}
                         <div className="p-2 bg-slate-900 rounded-xl flex items-center justify-between text-[11px] font-mono text-amber-300/90 border border-slate-800 truncate gap-2">
                           <div className="flex items-center gap-1.5 truncate">
                             <LinkIcon className="w-3 h-3 text-amber-400 shrink-0" />
@@ -607,7 +613,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                 {/* Bottom CSV Export Banner */}
                 <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
                   <span className="text-xs text-slate-400">
-                    Export contains all client records + Live URLs + Short TinyURLs.
+                    Export contains all client records + Live URLs + Short Links.
                   </span>
                   <button
                     onClick={handleExportCsv}
@@ -638,7 +644,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                 <span>Realtor Client Information</span>
               </h2>
               <p className="text-xs text-slate-400 mb-6">
-                Fill in client details to instantly customize the live preview and generate their unique TinyURL.
+                Fill in client details to instantly customize the live preview and generate their unique Short Link.
               </p>
 
               <form onSubmit={handleApplyToLive} className="space-y-4">
@@ -790,7 +796,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                     className="w-full sm:w-auto py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow"
                   >
                     {copiedSingleTiny ? <Check className="w-4 h-4" /> : <Scissors className="w-4 h-4" />}
-                    <span>{copiedSingleTiny ? 'TinyURL Copied!' : 'Copy TinyURL'}</span>
+                    <span>{copiedSingleTiny ? 'Short Link Copied!' : 'Copy Short Link'}</span>
                   </button>
                 </div>
               </form>
@@ -799,12 +805,12 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
             {/* Right Card: Live Generated Preview & Shareable URL */}
             <div className="lg:col-span-5 flex flex-col gap-6">
               
-              {/* Clean TinyURL Share Box */}
+              {/* Clean Short Link Share Box */}
               <div className="bg-slate-900/90 border border-amber-500/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
                     <Scissors className="w-4 h-4 text-amber-400" />
-                    Neat TinyURL (Client Ready)
+                    Short link (Client Ready)
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
                     Shortened
@@ -816,13 +822,13 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                 </p>
 
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm font-mono text-amber-300 font-bold break-all select-all flex items-center justify-between gap-2">
-                  <span>{isSingleShortening ? 'Generating TinyURL...' : (singleTinyUrl || currentGeneratedUrl)}</span>
+                  <span>{isSingleShortening ? 'Generating Short Link...' : (singleTinyUrl || currentGeneratedUrl)}</span>
                   <a
                     href={singleTinyUrl || currentGeneratedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-slate-400 hover:text-white p-1 shrink-0"
-                    title="Test TinyURL"
+                    title="Test Short Link"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
@@ -834,7 +840,7 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                     className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow"
                   >
                     {copiedSingleTiny ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedSingleTiny ? 'TinyURL Copied!' : 'Copy TinyURL to Clipboard'}</span>
+                    <span>{copiedSingleTiny ? 'Short Link Copied!' : 'Copy Short Link to Clipboard'}</span>
                   </button>
 
                   <button
@@ -964,10 +970,10 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
                         onClick={async () => {
                           const short = await shortenWithTinyUrl(dynamicLink);
                           navigator.clipboard.writeText(short);
-                          showToast(`Copied TinyURL for ${preset.name}!`);
+                          showToast(`Copied Short Link for ${preset.name}!`);
                         }}
                         className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-                        title="Copy Clean TinyURL"
+                        title="Copy Clean Short Link"
                       >
                         <Scissors className="w-4 h-4 text-amber-400" />
                       </button>

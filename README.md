@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Realtor Demo Engine
 
-# Run and deploy your AI Studio app
+Live: **https://attiqbaig1.github.io/realtor/**
 
-This contains everything you need to run your app locally.
+A luxury real estate website that personalises itself from the link, plus agency tools for generating and publishing realtor pages.
 
-View your app in AI Studio: https://ai.studio/apps/04d5f781-624f-4eb1-8aa3-ba48dbce5f1c
+## Agency tools (password protected)
 
-## Run Locally
+Open `https://attiqbaig1.github.io/realtor/?agency=true` → **SEO Generator & Bulk CSV** → enter the admin password.
 
-**Prerequisites:**  Node.js
+- **Publish to WordPress** — connect a WordPress site once (URL, username, Application Password), then publish a full realtor landing page for the single realtor or every realtor from the CSV. Each page gets a "keyword in City" H1, services, property types, process, reviews, FAQ with schema, call / WhatsApp / email buttons and a Google Map. Live URLs can be copied or exported as CSV. Pages can also be previewed and downloaded as `.html`.
+- **Bulk CSV** — upload realtors (Name, Agent Name, Address, City, Phone, Email, WhatsApp, SEO Keyword, Sales Volume) and get a personalised demo link and short link for each.
+- **Single demo generator**, **city presets** and **SEO audit**.
 
+Short links are created with TinyURL or is.gd; if neither service answers, the full link is shown (no made-up short links).
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Admin password
+
+Only a SHA-256 hash is stored, in `src/config/security.ts`. To change it, replace the hash:
+
+```
+node -e "console.log(require('crypto').createHash('sha256').update('NEW-PASSWORD').digest('hex'))"
+```
+
+This is a static site: the password keeps visitors out of the admin console and agency tools, but all data (listings, leads, WordPress credentials) lives in the browser that entered it.
+
+## Develop
+
+```
+npm install
+npm run dev
+```
+
+Pushing to `main` builds and deploys to GitHub Pages (`.github/workflows/deploy.yml`).
