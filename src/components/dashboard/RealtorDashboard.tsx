@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './rd.css';
 import { useRealEstate } from '../../context/RealEstateContext';
 import { buildRealtorPage, RealtorPage, RealtorPageInput, resolveCity } from '../../utils/realtorPage';
-import { connectWp, loadSavedCreds, publishPage, saveCreds, WpConn } from '../../utils/wordpress';
+import { connectWp, loadSavedCreds, pause, publishPage, PUBLISH_GAP_MS, saveCreds, WpConn } from '../../utils/wordpress';
 import { shortenWithTinyUrl } from '../../utils/urlShortener';
 import { parseRealtorCsv } from '../../utils/csvHelper';
 
@@ -194,6 +194,7 @@ const Dashboard: React.FC<{ generateDynamicUrl: (p?: any) => string }> = ({ gene
         out.push(site); setSites([...out]);
         site = await publishOne(site);
         out[out.length - 1] = site;
+        if (i < list.length - 1) await pause(PUBLISH_GAP_MS);
       } else {
         out.push(site);
       }
@@ -230,6 +231,7 @@ const Dashboard: React.FC<{ generateDynamicUrl: (p?: any) => string }> = ({ gene
       const done = await publishOne(todo[i]);
       if (done.wp === 'live') ok++;
       patch(todo[i].key, { wp: done.wp, link: done.link, error: done.error });
+      if (i < todo.length - 1) await pause(PUBLISH_GAP_MS);
     }
     setPubProg({ frac: 1, text: `Done: ${ok}/${todo.length} published` });
   };

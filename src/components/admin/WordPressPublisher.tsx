@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BatchRealtorItem, RealtorProfile } from '../../types';
 import { buildRealtorPage, RealtorPageInput } from '../../utils/realtorPage';
-import { connectWp, loadSavedCreds, publishPage, saveCreds, WpConn } from '../../utils/wordpress';
+import { connectWp, loadSavedCreds, pause, publishPage, PUBLISH_GAP_MS, saveCreds, WpConn } from '../../utils/wordpress';
 import { useRealEstate } from '../../context/RealEstateContext';
 import {
   Globe, Plug, CheckCircle2, AlertTriangle, Eye, Download, Send, Copy, Check, X, Loader2, ExternalLink, Rocket, FileSpreadsheet,
@@ -117,8 +117,9 @@ export const WordPressPublisher: React.FC<{
     setBulkRunning(true);
     let ok = 0;
     const todo = rows.filter(r => r.status !== 'live');
-    for (const r of todo) {
-      if (await publishRow(r.key)) ok++;
+    for (let i = 0; i < todo.length; i++) {
+      if (await publishRow(todo[i].key)) ok++;
+      if (i < todo.length - 1) await pause(PUBLISH_GAP_MS);
     }
     setBulkRunning(false);
     showToast(`Published ${ok} of ${todo.length} pages to WordPress.`, ok === todo.length ? 'success' : 'error');
