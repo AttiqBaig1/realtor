@@ -113,7 +113,7 @@ export const ContactSection: React.FC = () => {
               className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-950/40 transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>WhatsApp {realtorProfile.agentName.split(' ')[0]} Directly ({realtorProfile.whatsapp})</span>
+              <span>WhatsApp {realtorProfile.agentName === realtorProfile.name ? 'Us' : realtorProfile.agentName.split(' ')[0]} Directly ({realtorProfile.whatsapp})</span>
             </button>
           </div>
 

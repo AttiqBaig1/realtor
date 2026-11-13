@@ -116,3 +116,8 @@
 .rd .gate form{width:min(420px,100%);display:grid;gap:16px;padding:32px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
 .rd .gate h1{font:700 22px var(--f-disp);margin:0}
 @media(prefers-reduced-motion:reduce){.rd *{transition:none!important}}
+
+/* clean-link box */
+.rd .linkbox { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.03); }
+.rd .the-link { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(15px, 2.2vw, 20px); font-weight: 500; word-break: break-all; text-decoration: none; }
+.rd .the-link:hover { text-decoration: underline; }

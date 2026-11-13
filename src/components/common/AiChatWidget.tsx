@@ -91,7 +91,7 @@ export const AiChatWidget: React.FC = () => {
         
         {/* Tooltip on hover */}
         <span className="absolute right-14 whitespace-nowrap bg-slate-900/95 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          WhatsApp {realtorProfile.agentName.split(' ')[0]}
+          WhatsApp {realtorProfile.agentName === realtorProfile.name ? 'Us' : realtorProfile.agentName.split(' ')[0]}
         </span>
         
         {/* Ping indicator */}

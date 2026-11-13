@@ -33,7 +33,6 @@ import {
   Scissors
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { WordPressPublisher } from './WordPressPublisher';
 
 export const SeoEngineGenerator: React.FC = () => {
   const { 
@@ -56,7 +55,7 @@ export const SeoEngineGenerator: React.FC = () => {
   }, []);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'single' | 'bulk' | 'presets' | 'seo-preview' | 'wordpress'>('bulk');
+  const [activeTab, setActiveTab] = useState<'single' | 'bulk' | 'presets' | 'seo-preview'>('bulk');
 
   // Form State for Single Client Demo Generator
   const [formData, setFormData] = useState<Partial<RealtorProfile>>({
@@ -338,7 +337,6 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2 overflow-x-auto">
           {[
-            { id: 'wordpress', label: 'Publish to WordPress', icon: Globe },
             { id: 'bulk', label: 'Bulk CSV Upload & Export (with Short Links)', icon: FileSpreadsheet },
             { id: 'single', label: '1-Click Single Demo Generator', icon: Sliders },
             { id: 'presets', label: 'Requested City Presets (Paso Robles, Fresno, Santa Barbara, etc.)', icon: MapPin },
@@ -367,9 +365,6 @@ Grand River Heritage Realty,Emily Chen,"305 King St W, Kitchener, ON N2G 1B9","K
       {/* Main Container */}
       <div className="max-w-7xl mx-auto">
 
-        {activeTab === 'wordpress' && (
-          <WordPressPublisher single={formData} batch={generatedBatch} goToBulk={() => setActiveTab('bulk')} />
-        )}
 
         {/* ========================================================================= */}
         {/* TAB 1: BULK CSV PROCESSOR & TINYURL GENERATOR */}

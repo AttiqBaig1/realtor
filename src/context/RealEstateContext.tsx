@@ -14,6 +14,7 @@ import { INITIAL_PROPERTIES } from '../data/initialProperties';
 import { INITIAL_TESTIMONIALS, INITIAL_LEADS, INITIAL_SETTINGS } from '../data/initialData';
 import { verifyAdminPassword } from '../config/security';
 import { DEFAULT_REALTOR_PROFILE, REALTOR_PRESETS } from '../data/realtorPresets';
+import { buildCleanLink, linkOrigin, parseCleanLink, profileFromCleanLink } from '../utils/cleanLink';
 import confetti from 'canvas-confetti';
 
 export type NavigationPage = 
@@ -161,6 +162,10 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const parseUrlRealtor = (): RealtorProfile => {
     try {
       if (typeof window === 'undefined') return DEFAULT_REALTOR_PROFILE;
+
+      // Clean demo links: realtordemos.online/realtor-fresno
+      const clean = parseCleanLink(window.location.pathname, window.location.search);
+      if (clean) return profileFromCleanLink(clean, DEFAULT_REALTOR_PROFILE);
       
       const searchStr = window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '');
       const params = new URLSearchParams(searchStr);
@@ -378,6 +383,8 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Sync to LocalStorage
   useEffect(() => {
+    // a demo opened from a link stays on that link; it does not replace the saved profile
+    if (realtorProfile.isCustomDemo) return;
     localStorage.setItem('aura_realtor_profile', JSON.stringify(realtorProfile));
   }, [realtorProfile]);
 
@@ -452,19 +459,12 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Clean Dynamic URL Generator for GitHub Pages & static hosting
   const generateDynamicUrl = (profile?: Partial<RealtorProfile>) => {
     const target = { ...realtorProfile, ...(profile || {}) };
-    const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : 'https://yourname.github.io/realtor-demo/';
-    
-    const params = new URLSearchParams();
-    if (target.name) params.set('realtor', target.name);
-    if (target.city) params.set('city', target.city);
-    if (target.phone) params.set('phone', target.phone);
-    if (target.email) params.set('email', target.email);
-    if (target.address) params.set('addr', target.address);
-    if (target.agentName && target.agentName !== target.name) params.set('agent', target.agentName);
-    if (target.primaryKeyword) params.set('kw', target.primaryKeyword);
-    if (target.whatsapp) params.set('wa', target.whatsapp);
-
-    return `${baseUrl}?${params.toString()}`;
+    // Short, clean link: realtordemos.online/central-valley-prime-realty-fresno?p=5594382200
+    return buildCleanLink({
+      name: target.name, city: target.city, address: target.address, phone: target.phone,
+      keyword: target.primaryKeyword, agentName: target.agentName,
+      whatsapp: target.whatsapp,
+    }, linkOrigin());
   };
 
   // AI Chat message sender

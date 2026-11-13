@@ -140,7 +140,7 @@ export const HeroSection: React.FC = () => {
               id="hero-whatsapp-btn"
             >
               <MessageCircle className="w-4 h-4 text-white" />
-              <span>WhatsApp {realtorProfile.agentName.split(' ')[0]} Directly</span>
+              <span>WhatsApp {realtorProfile.agentName === realtorProfile.name ? 'Us' : realtorProfile.agentName.split(' ')[0]} Directly</span>
             </a>
 
             <div className="grid grid-cols-2 gap-2">

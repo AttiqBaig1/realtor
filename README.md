@@ -38,3 +38,18 @@ npm run dev
 ```
 
 Pushing to `main` builds and deploys to GitHub Pages (`.github/workflows/deploy.yml`).
+
+
+## Clean demo links (realtordemos.online)
+
+No publishing needed. Every link builds the site on the fly:
+
+| Link | Result |
+|---|---|
+| `realtordemos.online/realtor-fresno` | Generic demo for Fresno, CA |
+| `realtordemos.online/luxury-realtor-houston` | H1 "Luxury Realtor in Houston, TX" |
+| `realtordemos.online/central-valley-prime-realty-fresno?p=5594382200` | Named realtor, with their phone |
+
+Optional query keys: `p` phone, `a` agent, `e` email, `k` keyword, `n` exact name, `s` sales, `x` experience, `w` WhatsApp.
+Add a state code at the end for small or ambiguous towns: `/realtor-springfield-il`.
+The dashboard (`/?dashboard`) makes these links one at a time or from a CSV.
