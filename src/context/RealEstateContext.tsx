@@ -164,7 +164,7 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (typeof window === 'undefined') return DEFAULT_REALTOR_PROFILE;
 
       // Clean demo links: realtordemos.online/realtor-fresno
-      const clean = parseCleanLink(window.location.pathname, window.location.search);
+      const clean = parseCleanLink((window as any).__RD_PATH || window.location.pathname, window.location.search);
       if (clean) return profileFromCleanLink(clean, DEFAULT_REALTOR_PROFILE);
       
       const searchStr = window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '');

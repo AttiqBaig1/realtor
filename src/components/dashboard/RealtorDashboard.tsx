@@ -2,17 +2,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './rd.css';
 import { useRealEstate } from '../../context/RealEstateContext';
 import { buildSimpleLink, cityLabel, H1_OPTIONS, linkOrigin } from '../../utils/cleanLink';
+import { saveShort, shortSlugFor } from '../../utils/demoStore';
 
 /**
  * Realtor demo dashboard — one simple form.
- * Name + Address + Phone (+ H1 style) -> a clean link such as
- * realtordemos.online/central-valley-prime-realty-fresno-5594382200.
+ * Name + Address + Phone (+ H1 style) -> a short link such as
+ * realtordemos.online/tania-ariosa (details saved via utils/demoStore).
  * The H1 on the demo uses the city from the address.
  * Saved demos stay in this browser and can be edited or deleted.
  * Open with ?dashboard. Uses the admin password.
  */
 
-interface Saved { id: string; name: string; address: string; phone: string; h1: string; link: string; at: number }
+interface Saved { id: string; name: string; address: string; phone: string; h1: string; link: string; slug?: string; at: number }
 const STORE = 'rd_saved_demos';
 const loadSaved = (): Saved[] => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; } };
 const storeSaved = (list: Saved[]) => { try { localStorage.setItem(STORE, JSON.stringify(list)); } catch { /* */ } };
@@ -65,21 +66,37 @@ const Dashboard: React.FC = () => {
 
   const ready = name.trim() !== '' && address.trim() !== '';
   const city = address.trim() ? cityLabel(address) : '';
-  const link = useMemo(() => (ready ? buildSimpleLink({ name, address, phone, h1 }, origin) : ''), [name, address, phone, h1, ready, origin]);
+  const longLink = useMemo(() => (ready ? buildSimpleLink({ name, address, phone, h1 }, origin) : ''), [name, address, phone, h1, ready, origin]);
+  const [result, setResult] = useState<{ link: string; forLong: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const link = result && result.forLong === longLink ? result.link : '';
 
   const copy = (text: string, key: string) => {
     navigator.clipboard.writeText(text).catch(() => {});
     setCopied(key); setTimeout(() => setCopied(k => (k === key ? '' : k)), 1600);
   };
-  const reset = () => { setName(''); setAddress(''); setPhone(''); setH1(H1_OPTIONS[0].label); setEditing(null); };
-  const save = () => {
-    if (!ready) return;
-    const item: Saved = { id: editing || String(Date.now()), name: name.trim(), address: address.trim(), phone: phone.trim(), h1, link, at: Date.now() };
-    const list = editing ? saved.map(x => (x.id === editing ? item : x)) : [item, ...saved];
-    setSaved(list); storeSaved(list); reset();
+  const reset = () => { setName(''); setAddress(''); setPhone(''); setH1(H1_OPTIONS[0].label); setEditing(null); setResult(null); setErr(''); };
+
+  const generate = async () => {
+    if (!ready || busy) return;
+    setBusy(true); setErr('');
+    const old = editing ? saved.find(x => x.id === editing) : undefined;
+    const keep = old?.slug && shortSlugFor(name) === old.slug.replace(/-\d+$/, '') ? old.slug : undefined;
+    const r = await saveShort(name, longLink, keep);
+    setBusy(false);
+    if (r.ok === false) { setErr(r.error); return; }
+    const short = `${origin}/${r.slug}`;
+    setResult({ link: short, forLong: longLink });
+    const item: Saved = { id: editing || String(Date.now()), name: name.trim(), address: address.trim(), phone: phone.trim(), h1, link: short, slug: r.slug, at: Date.now() };
+    const list = editing ? saved.map(x => (x.id === editing ? item : x)) : [item, ...saved.filter(x => x.link !== short)];
+    setSaved(list); storeSaved(list);
+    setEditing(item.id);
+    copy(short, 'main');
   };
   const edit = (x: Saved) => {
-    setName(x.name); setAddress(x.address); setPhone(x.phone); setH1(x.h1); setEditing(x.id);
+    setName(x.name); setAddress(x.address); setPhone(x.phone); setH1(x.h1); setEditing(x.id); setErr('');
+    setResult({ link: x.link, forLong: buildSimpleLink({ name: x.name, address: x.address, phone: x.phone, h1: x.h1 }, origin) });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const remove = (id: string) => { const list = saved.filter(x => x.id !== id); setSaved(list); storeSaved(list); if (editing === id) reset(); };
@@ -117,11 +134,19 @@ const Dashboard: React.FC = () => {
               <div className="bar">
                 <button className="btn primary" type="button" onClick={() => copy(link, 'main')}>{copied === 'main' ? 'Copy ho gaya ✓' : '📋 Copy link'}</button>
                 <a className="btn ghost" href={link} target="_blank" rel="noopener noreferrer">Demo dekhein ↗</a>
-                <button className="btn ghost" type="button" onClick={save}>{editing ? '💾 Update' : '💾 Save to list'}</button>
-                {editing && <button className="btn ghost" type="button" onClick={reset}>Cancel</button>}
+                <button className="btn ghost" type="button" onClick={reset}>＋ Naya demo</button>
               </div>
             </>
-          ) : <span style={{ color: 'var(--muted)' }}>Name aur Address likhein — link yahan khud ban jayega.</span>}
+          ) : (
+            <div className="bar">
+              <button className="btn primary big" type="button" disabled={!ready || busy} onClick={generate}>
+                {busy ? 'Link ban raha hai…' : editing ? '💾 Update link' : '🔗 Link banao'}
+              </button>
+              {editing && <button className="btn ghost" type="button" onClick={reset}>Cancel</button>}
+              {!ready && <span style={{ color: 'var(--muted)' }}>Name aur Address likhein.</span>}
+            </div>
+          )}
+          {err && <div className="alert bad">{err}</div>}
         </div>
       </section>
 
