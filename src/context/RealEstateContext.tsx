@@ -176,7 +176,7 @@ export const RealEstateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const email = params.get('email');
       const address = params.get('addr') || params.get('address');
       const agentName = params.get('agent') || params.get('agentName') || name;
-      const primaryKeyword = params.get('keyword') || params.get('kw') || 'Top-Rated 5-Star Professional Realtor';
+      const primaryKeyword = params.get('keyword') || params.get('kw') || 'Top-Rated Realtor';
       const whatsapp = params.get('wa') || params.get('whatsapp') || phone;
 
       if (name || city || phone) {

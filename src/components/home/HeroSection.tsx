@@ -55,7 +55,7 @@ export const HeroSection: React.FC = () => {
   // Dynamic Local SEO Headline generator
   const getSeoHeadline = () => {
     const city = realtorProfile.city || 'Premier Locations';
-    const keyword = realtorProfile.primaryKeyword || '5-Star Professional Realtor';
+    const keyword = realtorProfile.primaryKeyword || 'Top-Rated Realtor';
     return (
       <>
         {keyword} in <span className="gold-gradient-text">{city}</span>

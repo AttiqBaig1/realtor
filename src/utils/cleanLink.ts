@@ -72,6 +72,17 @@ const prettyName = (tokens: string[]) =>
     return w[0].toUpperCase() + w.slice(1);
   }).join(' ');
 
+// ------------------------------------------------------------- H1 styles
+/** H1 choices for the dashboard. The default adds nothing to the link. */
+export const H1_OPTIONS: { label: string; slug: string }[] = [
+  { label: 'Top-Rated Realtor', slug: '' },
+  { label: '5-Star Realtor', slug: '5-star-realtor' },
+  { label: '#1 Realtor', slug: 'no1-realtor' },
+  { label: 'Trusted Local Realtor', slug: 'trusted-local-realtor' },
+  { label: 'Luxury Realtor', slug: 'luxury-realtor' },
+  { label: 'Best Real Estate Agent', slug: 'best-real-estate-agent' },
+];
+
 // ------------------------------------------------------------- parse
 export interface CleanLinkData {
   name?: string; city: string; keyword?: string; phone?: string; agentName?: string;
@@ -84,6 +95,14 @@ export function parseCleanLink(pathname: string, search = ''): CleanLinkData | n
   if (!seg || /\.[a-z0-9]{2,5}$/i.test(seg)) return null;
   let tokens = slugify(seg).split('-').filter(Boolean);
   if (!tokens.length) return null;
+
+  // H1 style at the start: /5-star-realtor-vance-realty-paso-robles-8052389900
+  let h1: string | undefined;
+  for (const o of H1_OPTIONS) {
+    if (!o.slug) continue;
+    const pre = o.slug.split('-');
+    if (tokens.length > pre.length && pre.every((t, i) => tokens[i] === t)) { h1 = o.label; tokens = tokens.slice(pre.length); break; }
+  }
 
   // trailing phone number: /central-valley-prime-realty-fresno-5594382200
   let pathPhone: string | undefined;
@@ -136,6 +155,7 @@ export function parseCleanLink(pathname: string, search = ''): CleanLinkData | n
   const q = new URLSearchParams(search);
   const get = (k: string) => (q.get(k) || '').trim() || undefined;
   if (get('n')) out.name = get('n');
+  if (h1) out.keyword = h1;
   if (get('k')) out.keyword = get('k');
   out.phone = get('p') || pathPhone;
   out.agentName = get('a');
@@ -236,6 +256,24 @@ export function buildCleanLink(inp: CleanLinkInput, origin = SITE_ORIGIN, phoneI
   const qs = q.toString();
   return `${origin.replace(/\/$/, '')}/${slug}${qs ? '?' + qs : ''}`;
 }
+
+/** The simple dashboard link: [h1-style-]name-city[-st]-phone. No query string. */
+export function buildSimpleLink(inp: { name: string; address: string; phone?: string; h1?: string }, origin = SITE_ORIGIN): string {
+  const { city, st } = cityFromText(undefined, inp.address);
+  const citySlug = slugify(city);
+  const nameSlug = slugify(inp.name || '');
+  let slug = !nameSlug ? `realtor-${citySlug}` : nameSlug.startsWith(citySlug + '-') ? nameSlug : `${nameSlug}-${citySlug}`;
+  if (st) { const first = findCity(citySlug); if (!first || first.st !== st) slug += `-${st.toLowerCase()}`; }
+  const d0 = (inp.phone || '').replace(/\D/g, '');
+  const d = d0.length === 11 && d0[0] === '1' ? d0.slice(1) : d0;
+  if (d.length === 10) slug += `-${d}`;
+  const pre = H1_OPTIONS.find(o => o.label === inp.h1)?.slug;
+  if (pre) slug = `${pre}-${slug}`;
+  return `${origin.replace(/\/$/, '')}/${slug}`;
+}
+
+/** City for the H1 preview: "Fresno, CA". */
+export const cityLabel = (address: string) => { const c = cityFromText(undefined, address); return c.st ? `${c.city}, ${c.st}` : c.city; };
 
 /** Turns free text like "realtor fresno" or "luxury realtor houston tx" into a link. */
 export const quickLink = (text: string, origin = SITE_ORIGIN) => {

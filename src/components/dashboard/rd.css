@@ -121,3 +121,19 @@
 .rd .linkbox { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.03); }
 .rd .the-link { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(15px, 2.2vw, 20px); font-weight: 500; word-break: break-all; text-decoration: none; }
 .rd .the-link:hover { text-decoration: underline; }
+
+/* ---- simple dashboard ---- */
+.rd .simple{max-width:860px;margin:0 auto;padding:28px 20px 60px;display:grid;gap:20px}
+.rd .simple-top{display:flex;justify-content:space-between;align-items:center}
+.rd .simple .panel{display:grid;gap:20px}
+.rd .simple-form{display:grid;gap:14px}
+.rd .simple-label{font-size:13px;font-weight:600;margin-bottom:8px}
+.rd .h1-opts{display:flex;flex-wrap:wrap;gap:8px}
+.rd .h1-opt{font:600 14px var(--f-body);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer}
+.rd .h1-opt:hover{border-color:var(--signal)}
+.rd .h1-opt.on{background:var(--signal);color:#111;border-color:transparent}
+.rd .h1-preview{margin-top:12px;font:700 clamp(20px,3vw,28px)/1.2 var(--f-disp)}
+.rd .h1-preview em{font-style:normal;color:var(--signal)}
+.rd tr.editing td{background:rgba(245,185,66,.08)}
+.rd .simple h2{font:700 19px/1.25 var(--f-disp);margin:0}
+.rd .h1-opt.on{color:var(--signal-ink)}
