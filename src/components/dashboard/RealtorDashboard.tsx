@@ -37,6 +37,17 @@ export const RealtorDashboard: React.FC = () => {
   // ---------------------------------------------------------------- gate
   const [pw, setPw] = useState('');
   const [pwErr, setPwErr] = useState('');
+  // Inside the Control Room hub: it sends the password, so no second login.
+  useEffect(() => {
+    if (window.parent === window || isAdminLoggedIn) return;
+    const HUB = 'https://attiqbaig1.github.io';
+    const onMsg = (e: MessageEvent) => {
+      if (e.origin === HUB && e.data && e.data.type === 'wds-hub-login' && typeof e.data.password === 'string') loginAdmin(e.data.password, true);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: 'wds-hub-ready' }, HUB);
+    return () => window.removeEventListener('message', onMsg);
+  }, [isAdminLoggedIn, loginAdmin]);
   if (!isAdminLoggedIn) {
     return (
       <div className="rd"><div className="gate">
